@@ -35,36 +35,32 @@
     }
 
     #menu {
-    position: fixed;
-    bottom: 44px;
-    left: 0; /* flush to left */
-    background-color: #2a2a2a;
-    border: 1px solid #444;
-    display: none;
-    z-index: 6;
-    width: 160px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
-    padding: 6px; /* space inside the menu */
-    box-sizing: border-box;
+      position: fixed;
+      bottom: 44px;
+      left: 0;
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+      display: none;
+      z-index: 6;
+      width: 160px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+      padding: 6px;
+      box-sizing: border-box;
     }
 
-
-
     #menu button {
-  background-color: #444;
-  color: white;
-  border: none;
-  padding: 8px 10px; /* ← padding around text */
-  margin: 4px 0;     /* ← spacing between buttons */
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-
+      background-color: #444;
+      color: white;
+      border: none;
+      padding: 8px 10px;
+      margin: 4px 0;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 4px;
+    }
 
     .desktop-icon {
       position: absolute;
@@ -158,6 +154,7 @@
   <button onclick="launchNotepad()">Notepaddy</button>
   <button onclick="launchIframeApp('https://example.com', 'Example Site')">Example Site</button>
   <button onclick="launchVM()">Virtual Machine</button>
+  <button onclick="launchAbout()">About</button>
 </div>
 
 <!-- Desktop Shortcuts -->
@@ -181,6 +178,11 @@
   Virtual Machine
 </div>
 
+<div class="desktop-icon" style="top: 400px; left: 30px;" onmousedown="startDragIcon(event, this)" ondblclick="launchAbout()">
+  <img src="question.png"><br>
+  About
+</div>
+
 <script>
   const startBtn = document.getElementById('startBtn');
   const menu = document.getElementById('menu');
@@ -202,17 +204,12 @@
     const content = win.querySelector('.content');
     const iframe = document.createElement('iframe');
     iframe.src = 'https://vadimcanplay.github.io/FakeOS/';
-    iframe.style.width = '100%';
-    iframe.style.height = '100%';
-    iframe.style.flex = '1';
-    iframe.style.border = 'none';
     content.appendChild(iframe);
   }
 
   function launchBrowser() {
     const win = createWindow('Web Browser');
     const content = win.querySelector('.content');
-
     const bar = document.createElement('div');
     bar.style.display = 'flex';
     bar.style.padding = '6px';
@@ -234,16 +231,12 @@
 
     const frame = document.createElement('iframe');
     frame.src = input.value;
-    frame.style.width = '100%';
-    frame.style.height = '100%';
-    frame.style.border = 'none';
-
     content.appendChild(frame);
 
     goBtn.onclick = () => {
       try {
         frame.src = input.value;
-      } catch (err) {
+      } catch {
         frame.remove();
         const errorMsg = document.createElement('div');
         errorMsg.innerHTML = `<p style="color:red; padding:10px;">❌ Site can't be loaded (likely blocked in iframe)</p>`;
@@ -273,6 +266,16 @@
     content.insertBefore(saveBtn, textarea);
   }
 
+  function launchAbout() {
+    const win = createWindow('About');
+    const content = win.querySelector('.content');
+    const textarea = document.createElement('textarea');
+    textarea.readOnly = true;
+    textarea.value = `About Me\n\tHey! I’m Vadym, also knows as ItzFrillz or VadimCanPlay, welcome to my personal hub page. \n\tHere you’ll find links to my other websites and some info about me.\n\tThe thing i most like is programming! Thats how you are able to see this page right now. I know Lua, HTML, CSS, C# and Batch.\n\tMy favorite thing to do is playing games (duh) but mostly Roblox. I also play Minecraft!\n\tIf you wanna hit me up or make something together, here are my socials:\n\tDiscord: 321_lol_123\n\tTelegram: @VadimPro96\n\tRoblox Username: YT_Vadim116 (ban for 6 months) / Alt account: ItzFrillz\n\nAbout this Site\n\tFakeOS, a site that stands up to its name: a fake os.\n\tThis OS has a webbrowser, a text editor, an example site, a virtual machine and this About app.\n\tThis is nothing much, took me like 30mins and the only reason i did this is cause i got banned on ROBLOX :(` +
+      `\n\tanyway enjoy this website, aswell as the new updates if there are gonna be any\n\tPEACE! ✌️`;
+    content.appendChild(textarea);
+  }
+
   function createWindow(titleText) {
     const win = document.createElement('div');
     win.className = 'window';
@@ -292,7 +295,6 @@
 
     title.querySelector('.close').onclick = () => win.remove();
 
-    // drag logic
     let offsetX, offsetY, isDragging = false;
 
     function onMouseMove(e) {
