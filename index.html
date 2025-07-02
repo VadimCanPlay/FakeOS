@@ -28,29 +28,30 @@
       background-color: #333;
       color: white;
       border: none;
-      padding: 8px 12px;
+      padding: 8px 14px;
       margin-right: 8px;
       cursor: pointer;
+      font-weight: bold;
     }
 
     #menu {
-      position: fixed;
-      bottom: 44px;
-      left: 0;
-      background-color: #2a2a2a;
-      border: 1px solid #444;
-      padding: 10px;
-      display: none;
-      z-index: 6;
-    }
+    position: fixed;
+    bottom: 44px;
+    left: 0px;
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    padding: 10px;
+    display: none;
+    z-index: 6;
+  }
 
     #menu button {
       background-color: #444;
       color: white;
       border: none;
       padding: 6px 10px;
-      margin: 4px 0;
-      width: 150px;
+      margin: 2px 0;
+      width: 100%;
       text-align: left;
       cursor: pointer;
     }
@@ -84,7 +85,8 @@
       display: flex;
       flex-direction: column;
       resize: both;
-      overflow: auto; /* allows resizing */
+      overflow: auto;
+      box-sizing: border-box;
     }
 
     .title-bar {
@@ -111,13 +113,16 @@
       background: white;
       display: flex;
       flex-direction: column;
-      overflow: auto; /* changed from hidden */
+      overflow: hidden;
+      min-height: 0;
     }
 
     iframe {
       flex: 1;
       border: none;
       width: 100%;
+      height: 100%;
+      min-height: 0;
     }
 
     textarea {
@@ -142,7 +147,7 @@
   <button onclick="launchBrowser()">Web Browser</button>
   <button onclick="launchNotepad()">Notepaddy</button>
   <button onclick="launchIframeApp('https://example.com', 'Example Site')">Example Site</button>
-  <button onclick="launchVM('https://vadimcanplay.github.io/FakeOS/', 'Virtual Machine')">Virtual Machine</button>
+  <button onclick="launchVM()">Virtual Machine</button>
 </div>
 
 <!-- Desktop Shortcuts -->
@@ -174,7 +179,6 @@
     menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
   };
 
-  // IFRAME app launcher
   function launchIframeApp(url, titleText) {
     menu.style.display = 'none';
     const win = createWindow(titleText);
@@ -183,11 +187,22 @@
     win.querySelector('.content').appendChild(iframe);
   }
 
+  function launchVM() {
+    const win = createWindow('Virtual Machine');
+    const content = win.querySelector('.content');
+    const iframe = document.createElement('iframe');
+    iframe.src = 'https://vadimcanplay.github.io/FakeOS/';
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.flex = '1';
+    iframe.style.border = 'none';
+    content.appendChild(iframe);
+  }
+
   function launchBrowser() {
     const win = createWindow('Web Browser');
     const content = win.querySelector('.content');
 
-    // address bar
     const bar = document.createElement('div');
     bar.style.display = 'flex';
     bar.style.padding = '6px';
@@ -227,14 +242,12 @@
     };
   }
 
-  // NOTEPAD APP
   function launchNotepad() {
     const win = createWindow('Notepaddy');
     const content = win.querySelector('.content');
     const textarea = document.createElement('textarea');
     content.appendChild(textarea);
 
-    // Simple save-to-file button
     const saveBtn = document.createElement('button');
     saveBtn.textContent = 'Download TXT';
     saveBtn.style.margin = '5px';
@@ -250,13 +263,6 @@
     content.insertBefore(saveBtn, textarea);
   }
 
-  // EMPTY VM WINDOW
-  function launchVM() {
-    createWindow('Virtual Machine');
-    // you'll embed content into this later
-  }
-
-  // create window
   function createWindow(titleText) {
     const win = document.createElement('div');
     win.className = 'window';
@@ -274,50 +280,54 @@
     win.appendChild(content);
     document.body.appendChild(win);
 
-    // close button
     title.querySelector('.close').onclick = () => win.remove();
 
-    // drag window
+    // drag logic
     let offsetX, offsetY, isDragging = false;
-    title.onmousedown = (e) => {
+
+    function onMouseMove(e) {
+      if (!isDragging) return;
+      win.style.left = `${e.clientX - offsetX}px`;
+      win.style.top = `${e.clientY - offsetY}px`;
+    }
+
+    function onMouseUp() {
+      isDragging = false;
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.body.style.userSelect = '';
+    }
+
+    title.addEventListener('mousedown', (e) => {
       isDragging = true;
       offsetX = e.clientX - win.offsetLeft;
       offsetY = e.clientY - win.offsetTop;
-      document.body.style.userSelect = "none";
-    };
-    document.onmousemove = (e) => {
-      if (isDragging) {
-        win.style.left = `${e.clientX - offsetX}px`;
-        win.style.top = `${e.clientY - offsetY}px`;
-      }
-    };
-    document.onmouseup = () => {
-      isDragging = false;
-      document.body.style.userSelect = "none";
-    };
+      document.body.style.userSelect = 'none';
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
 
     return win;
   }
 
-  // drag desktop icons
   function startDragIcon(e, el) {
     let shiftX = e.clientX - el.getBoundingClientRect().left;
     let shiftY = e.clientY - el.getBoundingClientRect().top;
 
-    const moveAt = (pageX, pageY) => {
+    function moveAt(pageX, pageY) {
       el.style.left = pageX - shiftX + 'px';
       el.style.top = pageY - shiftY + 'px';
-    };
+    }
 
     function onMouseMove(event) {
       moveAt(event.pageX, event.pageY);
     }
 
     document.addEventListener('mousemove', onMouseMove);
-    document.onmouseup = () => {
+    document.addEventListener('mouseup', () => {
       document.removeEventListener('mousemove', onMouseMove);
-      document.onmouseup = null;
-    };
+    }, { once: true });
   }
 </script>
 
