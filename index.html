@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FakeOS</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #1b4de4;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #taskbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 44px;
+      background-color: #000;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      padding: 0 5px;
+    }
+
+    #startBtn {
+      background-color: #333;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    #menu {
+      position: fixed;
+      bottom: 44px;
+      left: 0;
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+      padding: 10px;
+      display: none;
+      z-index: 6;
+    }
+
+    #menu button {
+      background-color: #444;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      margin: 4px 0;
+      width: 150px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .desktop-icon {
+      position: absolute;
+      width: 80px;
+      text-align: center;
+      color: white;
+      font-size: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .desktop-icon img {
+      width: 48px;
+      height: 48px;
+      pointer-events: none;
+    }
+
+    .window {
+      position: absolute;
+      top: 100px;
+      left: 100px;
+      width: 600px;
+      height: 400px;
+      background-color: #222;
+      border: 2px solid #666;
+      box-shadow: 0 0 10px black;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      resize: both;
+      overflow: auto; /* allows resizing */
+    }
+
+    .title-bar {
+      background: #007acc;
+      padding: 5px 10px;
+      cursor: move;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .title-bar .close {
+      background: #cc3333;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 2px 8px;
+    }
+
+    .content {
+      flex: 1;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      overflow: auto; /* changed from hidden */
+    }
+
+    iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100%;
+      resize: none;
+      border: none;
+      outline: none;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="taskbar">
+  <button id="startBtn">NT</button>
+</div>
+
+<div id="menu">
+  <button onclick="launchBrowser()">Web Browser</button>
+  <button onclick="launchNotepad()">Notepaddy</button>
+  <button onclick="launchIframeApp('https://example.com', 'Example Site')">Example Site</button>
+  <button onclick="launchVM()">Virtual Machine</button>
+</div>
+
+<!-- Desktop Shortcuts -->
+<div class="desktop-icon" style="top: 40px; left: 30px;" onmousedown="startDragIcon(event, this)" ondblclick="launchBrowser()">
+  <img src="browser.png"><br>
+  Web Browser
+</div>
+
+<div class="desktop-icon" style="top: 130px; left: 30px;" onmousedown="startDragIcon(event, this)" ondblclick="launchNotepad()">
+  <img src="notepad.png"><br>
+  Notepaddy
+</div>
+
+<div class="desktop-icon" style="top: 220px; left: 30px;" onmousedown="startDragIcon(event, this)" ondblclick="launchIframeApp('https://example.com', 'Example Site')">
+  <img src="site.png"><br>
+  Example Site
+</div>
+
+<div class="desktop-icon" style="top: 310px; left: 30px;" onmousedown="startDragIcon(event, this)" ondblclick="launchVM()">
+  <img src="window.png"><br>
+  Virtual Machine
+</div>
+
+<script>
+  const startBtn = document.getElementById('startBtn');
+  const menu = document.getElementById('menu');
+
+  startBtn.onclick = () => {
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  };
+
+  // IFRAME app launcher
+  function launchIframeApp(url, titleText) {
+    menu.style.display = 'none';
+    const win = createWindow(titleText);
+    const iframe = document.createElement('iframe');
+    iframe.src = url;
+    win.querySelector('.content').appendChild(iframe);
+  }
+
+  function launchBrowser() {
+    const win = createWindow('Web Browser');
+    const content = win.querySelector('.content');
+
+    // address bar
+    const bar = document.createElement('div');
+    bar.style.display = 'flex';
+    bar.style.padding = '6px';
+    bar.style.background = '#ddd';
+
+    const input = document.createElement('input');
+    input.placeholder = 'Enter a URL...';
+    input.value = 'https://example.com';
+    input.style.flex = '1';
+    input.style.padding = '4px';
+
+    const goBtn = document.createElement('button');
+    goBtn.textContent = 'Go';
+    goBtn.style.marginLeft = '6px';
+
+    bar.appendChild(input);
+    bar.appendChild(goBtn);
+    content.appendChild(bar);
+
+    const frame = document.createElement('iframe');
+    frame.src = input.value;
+    frame.style.width = '100%';
+    frame.style.height = '100%';
+    frame.style.border = 'none';
+
+    content.appendChild(frame);
+
+    goBtn.onclick = () => {
+      try {
+        frame.src = input.value;
+      } catch (err) {
+        frame.remove();
+        const errorMsg = document.createElement('div');
+        errorMsg.innerHTML = `<p style="color:red; padding:10px;">❌ Site can't be loaded (likely blocked in iframe)</p>`;
+        content.appendChild(errorMsg);
+      }
+    };
+  }
+
+  // NOTEPAD APP
+  function launchNotepad() {
+    const win = createWindow('Notepaddy');
+    const content = win.querySelector('.content');
+    const textarea = document.createElement('textarea');
+    content.appendChild(textarea);
+
+    // Simple save-to-file button
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Download TXT';
+    saveBtn.style.margin = '5px';
+    saveBtn.onclick = () => {
+      const blob = new Blob([textarea.value], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'note.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+    content.insertBefore(saveBtn, textarea);
+  }
+
+  // EMPTY VM WINDOW
+  function launchVM() {
+    createWindow('Virtual Machine');
+    // you'll embed content into this later
+  }
+
+  // create window
+  function createWindow(titleText) {
+    const win = document.createElement('div');
+    win.className = 'window';
+    win.style.top = Math.random() * 200 + 'px';
+    win.style.left = Math.random() * 300 + 'px';
+
+    const title = document.createElement('div');
+    title.className = 'title-bar';
+    title.innerHTML = `<span>${titleText}</span><button class="close">X</button>`;
+
+    const content = document.createElement('div');
+    content.className = 'content';
+
+    win.appendChild(title);
+    win.appendChild(content);
+    document.body.appendChild(win);
+
+    // close button
+    title.querySelector('.close').onclick = () => win.remove();
+
+    // drag window
+    let offsetX, offsetY, isDragging = false;
+    title.onmousedown = (e) => {
+      isDragging = true;
+      offsetX = e.clientX - win.offsetLeft;
+      offsetY = e.clientY - win.offsetTop;
+      document.body.style.userSelect = "none";
+    };
+    document.onmousemove = (e) => {
+      if (isDragging) {
+        win.style.left = `${e.clientX - offsetX}px`;
+        win.style.top = `${e.clientY - offsetY}px`;
+      }
+    };
+    document.onmouseup = () => {
+      isDragging = false;
+      document.body.style.userSelect = "none";
+    };
+
+    return win;
+  }
+
+  // drag desktop icons
+  function startDragIcon(e, el) {
+    let shiftX = e.clientX - el.getBoundingClientRect().left;
+    let shiftY = e.clientY - el.getBoundingClientRect().top;
+
+    const moveAt = (pageX, pageY) => {
+      el.style.left = pageX - shiftX + 'px';
+      el.style.top = pageY - shiftY + 'px';
+    };
+
+    function onMouseMove(event) {
+      moveAt(event.pageX, event.pageY);
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.onmouseup = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.onmouseup = null;
+    };
+  }
+</script>
+
+</body>
+</html>
