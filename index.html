@@ -37,25 +37,34 @@
     #menu {
     position: fixed;
     bottom: 44px;
-    left: 0px;
-    right: 1350px;
+    left: 0; /* flush to left */
     background-color: #2a2a2a;
     border: 1px solid #444;
-    padding: 10px;
     display: none;
     z-index: 6;
-  }
+    width: 160px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+    padding: 6px; /* space inside the menu */
+    box-sizing: border-box;
+    }
+
+
 
     #menu button {
-      background-color: #444;
-      color: white;
-      border: none;
-      padding: 6px 10px;
-      margin: 2px 0;
-      width: 100%;
-      text-align: left;
-      cursor: pointer;
-    }
+  background-color: #444;
+  color: white;
+  border: none;
+  padding: 8px 10px; /* ← padding around text */
+  margin: 4px 0;     /* ← spacing between buttons */
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+
 
     .desktop-icon {
       position: absolute;
